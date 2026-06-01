@@ -1,0 +1,17 @@
+{
+  "description": "did-you-get-it prompt cleanup on every UserPromptSubmit",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

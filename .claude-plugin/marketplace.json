@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "dygit-local",
+  "description": "Local marketplace for the did-you-get-it plugin (this repository).",
+  "owner": {
+    "name": "Ziya Sarikaya"
+  },
+  "plugins": [
+    {
+      "name": "did-you-get-it",
+      "description": "Cleans messy, typo-ridden Claude Code prompts before Claude sees them.",
+      "author": {
+        "name": "Ziya Sarikaya"
+      },
+      "category": "productivity",
+      "source": "./"
+    }
+  ]
+}

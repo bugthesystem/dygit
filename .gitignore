@@ -1,0 +1,23 @@
+# Build
+/crate/target/
+**/*.rs.bk
+
+# Local Claude Code state
+/.claude/
+
+# Secrets (never commit)
+*.env
+.env*
+*.pem
+*.key
+id_rsa*
+*secret*
+*credentials*
+
+# OS / editor
+.DS_Store
+*.swp
+*~
+
+# Internal design docs (kept local)
+/docs/superpowers/

@@ -1,0 +1,24 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="did-you-get-it logo">
+  <title>did-you-get-it</title>
+  <!-- Solid prompt bubble: the message, received. The slate outline keeps the
+       shape legible on dark backgrounds, where the navy fill would otherwise
+       blend into the page. -->
+  <path
+    d="M30 22h44a12 12 0 0 1 12 12v26a12 12 0 0 1-12 12H40L26 84a1.6 1.6 0 0 1-2.6-1.24V72a12 12 0 0 1-12-12V34a12 12 0 0 1 12-12Z"
+    fill="#0F172A"
+    stroke="#64748B"
+    stroke-width="2.5"
+    stroke-linejoin="round"
+  />
+  <!-- Typing dots resolving into the "✓ understood" check. -->
+  <circle cx="40" cy="47" r="4" fill="#94A3B8" />
+  <circle cx="52" cy="47" r="4" fill="#94A3B8" />
+  <path
+    d="M61 43l4.5 4.5L74 39"
+    fill="none"
+    stroke="#22C55E"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

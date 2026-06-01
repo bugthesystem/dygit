@@ -1,0 +1,9 @@
+{
+  "name": "did-you-get-it",
+  "version": "0.1.0",
+  "description": "Rescues messy, typo-ridden, or half-formed prompts so Claude understands you the first time. Confirms its reading with a one-line '✓ understood · …' and keeps reviewable history and stats.",
+  "author": {
+    "name": "Ziya Sarikaya"
+  },
+  "keywords": ["typos", "prompt", "cleanup", "productivity", "accessibility"]
+}
