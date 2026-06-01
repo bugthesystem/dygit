@@ -13,30 +13,30 @@
 # added as releases gain those assets. The structure below makes that a matter
 # of filling in url/sha256 per `on_<os>`/`on_<arch>` block.
 class Dygi < Formula
-  desc "Cleans messy Claude Code prompts (typos, dropped words) before Claude sees them"
+  desc "Fixes typos in AI-editor prompts before the model sees them (local, no AI)"
   homepage "https://github.com/bugthesystem/dygit"
-  version "0.1.0"
+  version "0.2.0"
   license "MIT"
 
   on_macos do
     on_arm do
-      url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-darwin-arm64.tar.gz"
-      sha256 "56cb0d31f67625be5f7288456a9b9b757f8280e7e7d3943a1f01df2c996d3a37"
+      url "https://github.com/bugthesystem/dygit/releases/download/v0.2.0/dygi-0.2.0-darwin-arm64.tar.gz"
+      sha256 "571f29eb71fafd68c968d62e88197ab95211c376b118376f8bb707c3437bedf5"
     end
     on_intel do
-      url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-darwin-x64.tar.gz"
-      sha256 "8f2c96ef6175cb8b7936930015d192fa7448a8c5898c71a5a10239e8abd36562"
+      url "https://github.com/bugthesystem/dygit/releases/download/v0.2.0/dygi-0.2.0-darwin-x64.tar.gz"
+      sha256 "5ed531e7583d45aa4b05d1a877c473b455720c0b87782ab498e58aff23abc2e3"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-linux-x64.tar.gz"
-      sha256 "89bc95aaeedb81f1d6c1f4edc19aadd2d9912c75ddaa690cd1abff21bdc755fe"
+      url "https://github.com/bugthesystem/dygit/releases/download/v0.2.0/dygi-0.2.0-linux-x64.tar.gz"
+      sha256 "722d5b6643962528c6a9929158ec8fe2d884cc0db5dc2d7051074c4cd1ec6f85"
     end
     on_arm do
-      url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-linux-arm64.tar.gz"
-      sha256 "6b4113bdcf9ef09d55457945cc0b9162ab50483051d185babc24997d745cde33"
+      url "https://github.com/bugthesystem/dygit/releases/download/v0.2.0/dygi-0.2.0-linux-arm64.tar.gz"
+      sha256 "f52e5ed29b0008e75d4a17809115b345c1c9b2cd0022d8ef7724452495c2bdd7"
     end
   end
 

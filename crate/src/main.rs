@@ -4,7 +4,7 @@
 //! input: `hook` swallows all errors (prints nothing, exits 0) so a broken
 //! plugin is invisible; the read-only commands print a friendly line instead.
 
-use dygi::commands::{history, hook, stats, toggle, undo};
+use dygi::commands::{correct, history, hook, stats, toggle, undo};
 use dygi::daemon;
 use std::io::Read;
 use std::process::ExitCode;
@@ -16,6 +16,13 @@ fn main() -> ExitCode {
 
     match sub.as_str() {
         "hook" => run_hook(),
+        "correct" => {
+            // Side-effect-free query for non-Claude editors: reads the prompt
+            // from stdin and prints one JSON line. Like `hook`, it never panics
+            // and always succeeds — it owns its stdin read and output.
+            correct::run();
+            ExitCode::SUCCESS
+        }
         "daemon" => {
             // The resident corrector. Errors (no dict, cannot bind) and the
             // "another daemon is already live" no-op both exit 0 — a daemon that

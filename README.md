@@ -1,27 +1,20 @@
 <p align="center">
-  <img src="assets/logo.svg" width="88" height="88" alt="did-you-get-it">
+  <img src="assets/logo.svg" width="80" height="80" alt="did-you-get-it">
 </p>
 
 <h1 align="center">did-you-get-it</h1>
 
 <p align="center">
-  <em>Quietly fixes messy prompts — typos, dropped words, thumb-typed, half-awake —<br>
-  so Claude gets it the first time.</em>
+  Fixes typos in your prompts before your AI editor sees them. Locally, no AI, no token cost.
 </p>
 
 <p align="center">
-  <a href="https://github.com/bugthesystem/dygit/releases"><img src="https://img.shields.io/github/v/release/bugthesystem/dygit?color=22c55e&label=release" alt="release"></a>
+  Works in Claude Code, Cursor, and OpenCode.
+</p>
+
+<p align="center">
+  <a href="https://github.com/bugthesystem/dygit/releases"><img src="https://img.shields.io/github/v/release/bugthesystem/dygit?label=release" alt="release"></a>
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
-  <img src="https://img.shields.io/badge/rust-idiomatic-orange" alt="Rust">
-  <img src="https://img.shields.io/badge/spell--check-0%20tokens-22c55e" alt="0 tokens">
-</p>
-
-<p align="center">
-  <a href="#install">Install</a> ·
-  <a href="#how-it-works">How it works</a> ·
-  <a href="#why">Why</a> ·
-  <a href="#commands">Commands</a> ·
-  <a href="#build">Build</a>
 </p>
 
 ---
@@ -32,77 +25,73 @@ You type:
 fix teh aut hbug wehn usr lgs ut
 ```
 
-Claude reads:
+The model reads:
 
 ```
-✓ understood · fix the auth bug when user logs out
+fix the auth bug when user logs out
 ```
 
-…and gets to work. Your original text stays in the transcript — nothing is hidden,
-nothing is sent anywhere.
+Your original text stays in the transcript. Nothing is sent anywhere.
 
 ## How it works
 
-On every prompt, a small Rust binary cleans your text and hands Claude its best
-reading. Claude opens its reply with one line — `✓ understood · <clean version>` —
-then does the work. Correction runs in two layers:
+A small Rust binary runs on each prompt and corrects it in two passes:
 
-- **Curated table** — unambiguous keyboard slips, fixed instantly and offline:
-  `teh → the`, `wehn → when`, `usr → user`.
-- **Spellchecker** — everything else goes through [symspell] against an 82k-word
-  frequency dictionary. Real words are *in* that dictionary, so they're never
-  "corrected" — `form`, `route`, and `stable` stay exactly as you typed them.
+1. **A curated table** of unambiguous keyboard slips — `teh → the`, `wehn → when`,
+   `usr → user` — fixed instantly, offline.
+2. **[symspell]** against an 82k-word frequency dictionary for everything else.
+   Real words are in the dictionary, so they're left alone: `form`, `route`, and
+   `stable` are never "corrected" into something else.
 
-A misplaced-space repair also re-cuts adjacent tokens (`aut hbug → auth bug`), but
-only when both halves are real words. When intent is genuinely ambiguous, Claude
-interprets in context and may ask one short question instead of guessing.
+A space-repair pass also re-joins split tokens (`aut hbug → auth bug`), but only
+when both halves are real words. Ambiguous input is left untouched — the binary
+won't guess.
 
-> **Never in the way.** Any error — bad input, missing binary, cold start — and the
-> plugin stays silent; your prompt goes through untouched.
+In Claude Code and Cursor the cleaned reading is passed to the model as
+side-channel context, so your original prompt stays visible. In OpenCode (which has
+no such channel) the message is rewritten inline, and only for high-confidence
+fixes.
 
-### Speed
-
-The dictionary takes ~½ second to load — too slow to do per prompt. So a small
-**daemon** loads it once and answers over a local socket in well under a
-millisecond. The first prompt of a session uses the instant table while the daemon
-warms up; it takes over from the next prompt on.
+The 82k-word dictionary takes ~½s to load, so a resident daemon loads it once and
+answers over a Unix socket in under a millisecond. Until it's warm, the table
+covers you. On any error the binary stays silent and your prompt goes through
+untouched.
 
 ## Why
 
-| | |
-|---|---|
-| 🧠 **No AI for spell-check** | Pure classical code — a lookup table + [symspell]. The model is never asked to fix a typo. |
-| 💸 **No token cost** | Spell-checking is free local computation. A messy prompt adds a one-line hint (~tens of tokens) to the turn you were already sending; a clean prompt adds nothing. |
-| 🔒 **Private** | Everything runs on your machine. No network, no telemetry, no API key. |
-| ⚡ **Fast** | Corrections resolve in well under a millisecond. |
-
-The idea: use cheap deterministic code for the mechanical work, and spend the
-model's attention only on the genuinely ambiguous calls — without an extra request.
+- **No AI in the spell-check.** It's a lookup table and an edit-distance algorithm.
+  The model is never asked to fix a typo.
+- **No token cost.** Correction is local computation. A messy prompt adds a short
+  hint to the request you were already sending; a clean prompt adds nothing.
+- **Private.** Runs on your machine. No network, no telemetry, no API key.
+- **One binary, three editors.** Same engine behind every integration.
 
 ## Install
 
-**As a Claude Code plugin** (recommended):
+Get the binary (macOS & Linux, arm64 + x64):
 
-```bash
-claude plugin marketplace add bugthesystem/dygit
-claude plugin install did-you-get-it@dygit-local
-```
-
-**Or just the `dygi` binary**, via Homebrew (macOS & Linux, arm64 + x64):
-
-```bash
+```sh
 brew tap bugthesystem/dygit https://github.com/bugthesystem/dygit
 brew install dygi
 ```
 
+Or [build from source](#build). Then wire it into your editor.
+
+### Claude Code
+
+```sh
+claude plugin marketplace add bugthesystem/dygit
+claude plugin install did-you-get-it@dygit-local
+```
+
+Installs the prompt hook and four slash commands ([below](#commands)).
+
 ### Cursor
 
-The same binary works in [Cursor](https://cursor.com) (v1.7+) — its
-`beforeSubmitPrompt` hook speaks the same protocol. Clone the repo and point a
-hook at it:
+Cursor 1.7+ has an equivalent prompt hook. Point `.cursor/hooks.json` (project) or
+`~/.cursor/hooks.json` (global) at the wrapper:
 
 ```jsonc
-// .cursor/hooks.json  (project)  or  ~/.cursor/hooks.json  (global)
 {
   "version": 1,
   "hooks": {
@@ -113,33 +102,48 @@ hook at it:
 }
 ```
 
-A ready-to-copy `.cursor/hooks.json` ships in this repo (uses a project-relative
-path). The cleaned reading is injected as `additionalContext`, exactly as in
-Claude Code — same engine, no AI, no token cost for the spell-check.
+A ready-to-copy `.cursor/hooks.json` ships in this repo.
+
+### OpenCode
+
+```sh
+cp opencode/dygi.js ~/.config/opencode/plugins/    # or .opencode/plugins/ per project
+```
+
+OpenCode rewrites the message inline (no side-channel), so it only acts on
+high-confidence fixes. See [`opencode/README.md`](opencode/README.md).
 
 ## Commands
+
+Claude Code only:
 
 | Command | Does |
 |---|---|
 | `/did-you-get-it:history [N]` | recent cleanups, `original → cleaned` |
 | `/did-you-get-it:stats` | totals, top tokens, interpretation rate |
 | `/did-you-get-it:toggle [on·off·verbose·quiet·aggressive·gentle]` | settings (no arg shows state) |
-| `/did-you-get-it:undo` | your last original prompt, verbatim, to re-send |
+| `/did-you-get-it:undo` | last original prompt, verbatim, to re-send |
 
-Data lives under `~/.claude/plugins/data/did-you-get-it/` — `events.jsonl` for
-history, `config.json` for settings.
+State lives in `~/.claude/plugins/data/did-you-get-it/`.
+
+The binary also works standalone:
+
+```sh
+echo "fix teh bug" | dygi correct
+# {"original":"fix teh bug","cleaned":"fix the bug","verdict":"trivial","changed":true}
+```
 
 ## Build
 
-```bash
+```sh
 ./scripts/build-all.sh          # all platforms (needs cross toolchains)
 ```
 
-Binaries land in `bin/`; the hook picks the right one from `uname`. Releases are
-built for all four platforms by CI on every tag.
+Binaries land in `bin/`; the hook picks the right one from `uname`. CI builds all
+four platforms on every tag.
 
-> On macOS, copying a binary into `bin/` breaks its adhoc signature and the kernel
-> kills it on launch — re-sign with `codesign --force --sign - <binary>`.
+> macOS strips a binary's adhoc signature when it's copied, and the kernel then
+> kills it on launch. Re-sign with `codesign --force --sign - <binary>`;
 > `build-all.sh` does this for the darwin targets.
 
 ## License
