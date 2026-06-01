@@ -21,7 +21,7 @@ class Dygi < Formula
   on_macos do
     on_arm do
       url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-darwin-arm64.tar.gz"
-      sha256 "1aaf13dbf2b34f83b733087994d949b80cc60b2fb1985e8e34adb0ad11e82717"
+      sha256 "609764cd743e60315f3683c686053ddf820c11d83129a0c79f77f6014b59ac7e"
     end
     # on_intel: add darwin-x64 url/sha256 once a release ships that asset.
   end
