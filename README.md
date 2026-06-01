@@ -144,6 +144,6 @@ built for all four platforms by CI on every tag.
 
 ## License
 
-[MIT](LICENSE) © Ziya Sarikaya
+[MIT](LICENSE) © bugthesystem
 
 [symspell]: https://crates.io/crates/symspell
