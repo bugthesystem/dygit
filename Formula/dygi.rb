@@ -21,12 +21,22 @@ class Dygi < Formula
   on_macos do
     on_arm do
       url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-darwin-arm64.tar.gz"
-      sha256 "609764cd743e60315f3683c686053ddf820c11d83129a0c79f77f6014b59ac7e"
+      sha256 "56cb0d31f67625be5f7288456a9b9b757f8280e7e7d3943a1f01df2c996d3a37"
     end
-    # on_intel: add darwin-x64 url/sha256 once a release ships that asset.
+    # on_intel (darwin-x64): pending — the macOS Intel CI runner is still
+    # building. Filled in by the next release build.
   end
 
-  # on_linux: add linux-x64 / linux-arm64 url/sha256 once releases ship them.
+  on_linux do
+    on_intel do
+      url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-linux-x64.tar.gz"
+      sha256 "89bc95aaeedb81f1d6c1f4edc19aadd2d9912c75ddaa690cd1abff21bdc755fe"
+    end
+    on_arm do
+      url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-linux-arm64.tar.gz"
+      sha256 "6b4113bdcf9ef09d55457945cc0b9162ab50483051d185babc24997d745cde33"
+    end
+  end
 
   def install
     # The tarball unpacks into a single top-level directory; Homebrew strips it,
