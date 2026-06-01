@@ -2,6 +2,7 @@
 
 use crate::log::{self, model::Verdict};
 use std::collections::HashMap;
+use std::fmt::Write;
 
 /// Percentage of prompts that needed interpretation, rendered for humans.
 ///
@@ -19,11 +20,13 @@ fn interpret_percent(interpreted: usize, total: usize) -> u32 {
         // A real-but-tiny rate must never collapse to 0%.
         1
     } else {
-        pct as u32
+        // Saturating, panic-free: a percentage is 0..=100, so this never wraps.
+        u32::try_from(pct).unwrap_or(u32::MAX)
     }
 }
 
 /// Returns a rendered stats block.
+#[must_use]
 pub fn run() -> String {
     let events = log::read_all().unwrap_or_default();
     if events.is_empty() {
@@ -52,12 +55,13 @@ pub fn run() -> String {
 
     let pct = interpret_percent(interpreted, total);
     let mut out = String::new();
-    out.push_str(&format!("Prompts cleaned: {total}\n"));
-    out.push_str(&format!("Needed interpretation: {interpreted} ({pct}%)\n"));
-    out.push_str(&format!("Total token fixes: {total_edits}\n"));
+    // Writing to a `String` is infallible; ignore each formatter `Result`.
+    let _ = writeln!(out, "Prompts cleaned: {total}");
+    let _ = writeln!(out, "Needed interpretation: {interpreted} ({pct}%)");
+    let _ = writeln!(out, "Total token fixes: {total_edits}");
     out.push_str("Most frequent input tokens:\n");
     for (tok, n) in top {
-        out.push_str(&format!("  {tok} ×{n}\n"));
+        let _ = writeln!(out, "  {tok} ×{n}");
     }
     out
 }

@@ -140,8 +140,7 @@ impl Speller for SymSpeller {
         self.inner
             .lookup(token, Verbosity::Top, MAX_EDIT_DISTANCE)
             .first()
-            .map(|s| s.term.clone())
-            .unwrap_or_else(|| token.to_string())
+            .map_or_else(|| token.to_string(), |s| s.term.clone())
     }
 }
 
@@ -214,7 +213,14 @@ fn detach(cmd: &mut std::process::Command) {
 /// canonical path**. The canonical socket exists only once loading is done, so a
 /// probing client (the hook) that finds it connectable is guaranteed a daemon
 /// that can answer immediately — it never adopts a half-loaded daemon and then
-/// stalls a whole prompt waiting on an accept() that has not happened yet.
+/// stalls a whole prompt waiting on an `accept()` that has not happened yet.
+///
+/// # Errors
+///
+/// Returns `Err` only on genuinely fatal setup failures: the socket or
+/// dictionary path cannot be resolved, the dictionary cannot be loaded, or the
+/// temp socket cannot be bound or published. A live peer already serving is a
+/// success (`Ok`), not an error.
 pub fn run() -> Result<(), DygiError> {
     let socket = platform::socket_path()?;
     let dict = platform::dict_path()?; // resolve before binding so a missing dict fails clean.
@@ -249,7 +255,7 @@ pub fn run() -> Result<(), DygiError> {
         return Err(e.into());
     }
 
-    serve(listener, Arc::new(speller), &socket);
+    serve(&listener, &speller, &socket);
     Ok(())
 }
 
@@ -295,7 +301,7 @@ impl Activity {
 /// Shutdown is requested by any of: a `__quit__` socket request, the stdin-EOF
 /// watchdog, or the idle backstop. All three nudge a self-connection so the
 /// blocking `accept()` returns and the loop can observe the flag and exit.
-fn serve<S: Speller>(listener: UnixListener, speller: Arc<S>, socket: &Path) {
+fn serve<S: Speller>(listener: &UnixListener, speller: &S, socket: &Path) {
     let activity = Activity::new();
     activity.touch();
     let stop = Arc::new(std::sync::atomic::AtomicBool::new(false));
@@ -311,7 +317,7 @@ fn serve<S: Speller>(listener: UnixListener, speller: Arc<S>, socket: &Path) {
         activity.touch();
         // One token per connection; handle errors per-connection so a malformed
         // request can never take the daemon down.
-        if handle(stream, speller.as_ref()) == Control::Quit {
+        if handle(stream, speller) == Control::Quit {
             stop.store(true, Ordering::Relaxed);
             break;
         }
@@ -392,8 +398,8 @@ fn spawn_stdin_watchdog(stop: Arc<std::sync::atomic::AtomicBool>, socket: std::p
             match stdin.read(&mut buf) {
                 Ok(0) => break, // EOF: parent gone.
                 Ok(n) if buf[..n].contains(&b'q') && line_is_quit(&buf[..n]) => break,
-                Ok(_) => continue, // ignore other input.
-                Err(_) => break,   // treat a broken stdin as parent-gone too.
+                Ok(_) => {}      // ignore other input; keep reading.
+                Err(_) => break, // treat a broken stdin as parent-gone too.
             }
         }
         request_shutdown(&stop, &socket);
@@ -487,7 +493,8 @@ mod tests {
         let listener = UnixListener::bind(&socket).unwrap();
         let speller = fake(&[("teh", "the"), ("funtion", "function")]);
         let sock_for_thread = socket.clone();
-        let server = std::thread::spawn(move || serve(listener, speller, &sock_for_thread));
+        let server =
+            std::thread::spawn(move || serve(&listener, speller.as_ref(), &sock_for_thread));
 
         assert_eq!(ask(&socket, "teh"), "the");
         assert_eq!(ask(&socket, "funtion"), "function");
@@ -508,7 +515,8 @@ mod tests {
         let listener = UnixListener::bind(&socket).unwrap();
         let speller = fake(&[("teh", "the")]);
         let sock_for_thread = socket.clone();
-        let server = std::thread::spawn(move || serve(listener, speller, &sock_for_thread));
+        let server =
+            std::thread::spawn(move || serve(&listener, speller.as_ref(), &sock_for_thread));
 
         // Connect and drop without writing a newline-terminated request.
         {
@@ -535,7 +543,8 @@ mod tests {
         let listener = UnixListener::bind(&socket).unwrap();
         let speller = fake(&[("teh", "the")]);
         let sock_for_thread = socket.clone();
-        let server = std::thread::spawn(move || serve(listener, speller, &sock_for_thread));
+        let server =
+            std::thread::spawn(move || serve(&listener, speller.as_ref(), &sock_for_thread));
 
         // Connect, write a partial line with NO newline, and KEEP the stream
         // alive for the rest of the test by binding it (not dropping it). The

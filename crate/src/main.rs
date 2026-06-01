@@ -33,10 +33,7 @@ fn main() -> ExitCode {
             ExitCode::SUCCESS
         }
         "toggle" => {
-            print!(
-                "{}",
-                toggle::run(rest.first().map(String::as_str).unwrap_or(""))
-            );
+            print!("{}", toggle::run(rest.first().map_or("", String::as_str)));
             ExitCode::SUCCESS
         }
         "undo" => {
@@ -75,19 +72,20 @@ fn now_iso() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_secs());
     // Minimal civil-time formatting (UTC). Good enough for a log timestamp.
     let days = secs / 86_400;
     let tod = secs % 86_400;
     let (h, m, s) = (tod / 3600, (tod % 3600) / 60, tod % 60);
-    let (y, mo, d) = civil_from_days(days as i64);
+    // Days-since-epoch fits i64 for any realistic wall clock; saturate rather
+    // than wrap if the system clock is absurd.
+    let (y, mo, d) = civil_from_days(i64::try_from(days).unwrap_or(i64::MAX));
     format!("{y:04}-{mo:02}-{d:02}T{h:02}:{m:02}:{s:02}Z")
 }
 
 /// Converts days-since-Unix-epoch to a (year, month, day) civil date.
 /// Algorithm from Howard Hinnant's `chrono`-compatible date math (public domain).
-fn civil_from_days(z: i64) -> (i64, u32, u32) {
+const fn civil_from_days(z: i64) -> (i64, u32, u32) {
     let z = z + 719_468;
     let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
     let doe = z - era * 146_097;
@@ -95,7 +93,21 @@ fn civil_from_days(z: i64) -> (i64, u32, u32) {
     let y = yoe + era * 400;
     let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
     let mp = (5 * doy + 2) / 153;
+    // `d` (1..=31) and `m` (1..=12) are bounded by the algorithm, so neither
+    // cast can truncate or lose sign. Mask to the low 32 bits to convert without
+    // a panic in this `const fn` (`try_from` is not yet const-usable here); the
+    // value is always small, so the mask is an identity.
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "d is 1..=31 and m is 1..=12 by construction; the cast is exact"
+    )]
     let d = (doy - (153 * mp + 2) / 5 + 1) as u32;
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "m is 1..=12 by construction; the cast is exact"
+    )]
     let m = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
     (if m <= 2 { y + 1 } else { y }, m, d)
 }

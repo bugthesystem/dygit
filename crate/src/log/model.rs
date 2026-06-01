@@ -14,7 +14,7 @@ pub enum Verdict {
     Clean,
     /// Obvious typo/spacing fixes; high confidence.
     Trivial,
-    /// Garbled or ambiguous; Claude was asked to interpret in context.
+    /// Garbled or ambiguous; the model was asked to interpret in context.
     Interpret,
 }
 

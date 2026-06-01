@@ -26,6 +26,7 @@ fn is_known(word: &str) -> bool {
 ///
 /// Example: `("aut", "hbug")` → `("auth", "bug")` because moving the space one
 /// char right yields two known words.
+#[must_use]
 pub fn resplit_pair(a: &str, b: &str) -> Option<(String, String)> {
     let joined: Vec<char> = a.chars().chain(b.chars()).collect();
     // Try every internal cut point; accept the first that yields two known words.

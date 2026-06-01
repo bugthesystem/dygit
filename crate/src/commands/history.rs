@@ -1,8 +1,10 @@
 //! `dygi history [N]` — renders the last N cleanups for the slash command.
 
 use crate::log::{self, model::Verdict};
+use std::fmt::Write;
 
 /// Returns a human-readable history block (newest last), capped at `limit`.
+#[must_use]
 pub fn run(limit: usize) -> String {
     let events = log::read_all().unwrap_or_default();
     if events.is_empty() {
@@ -16,12 +18,14 @@ pub fn run(limit: usize) -> String {
         } else {
             ""
         };
-        out.push_str(&format!(
+        // Writing to a `String` is infallible; ignore the formatter `Result`.
+        let _ = write!(
+            out,
             "{flag}{ts}\n  {original}\n  → {cleaned}\n",
             ts = e.ts,
             original = e.original,
             cleaned = e.cleaned,
-        ));
+        );
     }
     out
 }

@@ -63,6 +63,11 @@ impl Config {
     }
 
     /// Writes config to disk. Used by the `toggle` command, not the hot path.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err` if the data dir cannot be resolved, the config cannot be
+    /// serialised, or the file cannot be written.
     pub fn save(&self) -> Result<(), DygiError> {
         let path = config_path()?;
         let json = serde_json::to_vec_pretty(self)?;

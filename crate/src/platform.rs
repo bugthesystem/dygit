@@ -11,6 +11,11 @@ use std::path::PathBuf;
 ///
 /// Layout: `$HOME/.claude/plugins/data/did-you-get-it/`. We honour
 /// `DYGI_DATA_DIR` first so tests can point at a temp dir.
+///
+/// # Errors
+///
+/// Returns `Err` if neither `DYGI_DATA_DIR` nor `HOME` is set, or if the
+/// directory cannot be created.
 pub fn data_dir() -> Result<PathBuf, DygiError> {
     if let Ok(override_dir) = std::env::var("DYGI_DATA_DIR") {
         let p = PathBuf::from(override_dir);
@@ -28,18 +33,32 @@ pub fn data_dir() -> Result<PathBuf, DygiError> {
 }
 
 /// Path to the append-only event log.
+///
+/// # Errors
+///
+/// Returns `Err` if the data dir cannot be resolved (see [`data_dir`]).
 pub fn events_path() -> Result<PathBuf, DygiError> {
     Ok(data_dir()?.join("events.jsonl"))
 }
 
 /// Path to the config file.
+///
+/// # Errors
+///
+/// Returns `Err` if the data dir cannot be resolved (see [`data_dir`]).
 pub fn config_path() -> Result<PathBuf, DygiError> {
     Ok(data_dir()?.join("config.json"))
 }
 
-/// Path to the daemon's unix domain socket, under the data dir so it shares the
-/// data dir's lifetime and `DYGI_DATA_DIR` override (tests point both at a temp
-/// dir). The daemon binds here; the hook connects here.
+/// Path to the daemon's unix domain socket.
+///
+/// It lives under the data dir so it shares the data dir's lifetime and
+/// `DYGI_DATA_DIR` override (tests point both at a temp dir). The daemon binds
+/// here; the hook connects here.
+///
+/// # Errors
+///
+/// Returns `Err` if the data dir cannot be resolved (see [`data_dir`]).
 pub fn socket_path() -> Result<PathBuf, DygiError> {
     Ok(data_dir()?.join("dygi.sock"))
 }
@@ -58,6 +77,10 @@ pub fn socket_path() -> Result<PathBuf, DygiError> {
 ///
 /// Returns the first candidate that exists, or `NoDataDir` if none do — callers
 /// on the hot path treat that as "no daemon", never an error.
+///
+/// # Errors
+///
+/// Returns `NoDataDir` if no candidate dictionary path exists.
 pub fn dict_path() -> Result<PathBuf, DygiError> {
     if let Ok(p) = std::env::var("DYGI_DICT_PATH") {
         let p = PathBuf::from(p);
@@ -85,6 +108,7 @@ pub fn dict_path() -> Result<PathBuf, DygiError> {
 ///
 /// Kept here so the build script and the runtime wrapper agree on one source
 /// of truth for naming.
+#[must_use]
 pub fn platform_slug() -> &'static str {
     match (std::env::consts::OS, std::env::consts::ARCH) {
         ("macos", "aarch64") => "darwin-arm64",

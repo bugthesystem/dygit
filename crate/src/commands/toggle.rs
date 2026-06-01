@@ -6,6 +6,7 @@ use crate::config::{Aggressiveness, Config, Verbosity};
 ///
 /// Accepted args: `on`, `off`, `verbose`, `quiet`, `aggressive`, `gentle`.
 /// Anything else (including empty) just reports current state.
+#[must_use]
 pub fn run(arg: &str) -> String {
     let mut config = Config::load();
     let changed = match arg {
@@ -72,7 +73,7 @@ mod tests {
     #[test]
     fn no_arg_reports_state_without_changing() {
         with_temp_dir("dygi-test-toggle-state", || {
-            run("quiet");
+            let _ = run("quiet"); // called here only to persist the change.
             let out = run("");
             assert!(out.contains("quiet"));
         });

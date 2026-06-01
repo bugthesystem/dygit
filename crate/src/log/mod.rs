@@ -12,6 +12,11 @@ use std::io::Write;
 
 /// Appends one event as a single JSON line. Best-effort by contract: callers on
 /// the hot path ignore the `Err`, but we still return it so commands can report.
+///
+/// # Errors
+///
+/// Returns `Err` if the data dir cannot be resolved, the event cannot be
+/// serialised, or the log file cannot be opened or written.
 pub fn append(event: &Event) -> Result<(), DygiError> {
     let path = events_path()?;
     let mut line = serde_json::to_vec(event)?;
@@ -26,6 +31,11 @@ pub fn append(event: &Event) -> Result<(), DygiError> {
 
 /// Reads every event, oldest first. Malformed lines are skipped, not fatal —
 /// one bad line must never hide the rest of the user's history.
+///
+/// # Errors
+///
+/// Returns `Err` only if the data dir cannot be resolved; a missing log file is
+/// treated as empty history, not an error.
 pub fn read_all() -> Result<Vec<Event>, DygiError> {
     let path = events_path()?;
     let Ok(text) = std::fs::read_to_string(&path) else {

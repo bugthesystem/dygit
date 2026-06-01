@@ -30,14 +30,17 @@ pub struct Outcome {
 }
 
 /// Cleans `prompt` using `corrector` for generalisation beyond the curated
-/// table. `aggressiveness` is accepted for forward-compatibility; the gentle
-/// path (table + validated re-splits + corrector) is already conservative, so
-/// today both settings behave identically.
+/// table.
+///
+/// `aggressiveness` is accepted for forward-compatibility; the gentle path
+/// (table + validated re-splits + corrector) is already conservative, so today
+/// both settings behave identically.
 ///
 /// Per token the order is: (1) curated table via [`typos::fix_token`]; (2) if
 /// the table left it unchanged, ask `corrector`. The corrector is responsible
 /// for never blocking and never guessing — it returns the token unchanged when
 /// unsure (see [`corrector::Corrector`]).
+#[must_use]
 pub fn clean(prompt: &str, _aggressiveness: Aggressiveness, corrector: &dyn Corrector) -> Outcome {
     // 1. Split into tokens; an empty prompt is trivially clean.
     let tokens: Vec<&str> = prompt.split_whitespace().collect();
@@ -86,7 +89,8 @@ pub fn clean(prompt: &str, _aggressiveness: Aggressiveness, corrector: &dyn Corr
         cleaned: cleaned_join,
         verdict,
         score,
-        edits: changed as u32,
+        // Saturating, panic-free: an absurdly long prompt can't wrap the count.
+        edits: u32::try_from(changed).unwrap_or(u32::MAX),
     }
 }
 

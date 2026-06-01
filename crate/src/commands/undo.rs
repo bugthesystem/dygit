@@ -1,10 +1,11 @@
 //! `dygi undo` — prints the most recent ORIGINAL prompt verbatim so the user
 //! can re-send it themselves if a cleanup misread them. It cannot un-send
-//! Claude's turn; it only hands the raw text back.
+//! the assistant's turn; it only hands the raw text back.
 
 use crate::log;
 
 /// Returns the last original prompt, or a friendly note if there is none.
+#[must_use]
 pub fn run() -> String {
     let events = log::read_all().unwrap_or_default();
     match events.last() {

@@ -56,6 +56,7 @@ const COMMON: &[(&str, &str)] = &[
 ///
 /// Leading/trailing ASCII punctuation is preserved: `"teh."` → `"the."`,
 /// `"Teh"` → `"The"`.
+#[must_use]
 pub fn fix_token(token: &str) -> String {
     let (prefix, core, suffix) = split_punctuation(token);
     if core.is_empty() {
@@ -79,8 +80,10 @@ fn fix_core(core: &str) -> String {
 }
 
 /// Splits `token` into (leading punctuation, alphabetic core, trailing
-/// punctuation). The core runs from the first to the last alphabetic char, so
-/// interior punctuation stays inside the core (we do not try to fix those).
+/// punctuation).
+///
+/// The core runs from the first to the last alphabetic char, so interior
+/// punctuation stays inside the core (we do not try to fix those).
 pub fn split_punctuation(token: &str) -> (&str, &str, &str) {
     let is_alpha = |c: char| c.is_alphabetic();
     let Some(start) = token.find(is_alpha) else {
@@ -97,7 +100,7 @@ pub fn split_punctuation(token: &str) -> (&str, &str, &str) {
 
 /// Re-applies the leading-capital shape of `source` to `fixed`.
 pub fn restore_case(source: &str, fixed: &str) -> String {
-    let leading_upper = source.chars().next().is_some_and(|c| c.is_uppercase());
+    let leading_upper = source.chars().next().is_some_and(char::is_uppercase);
     if leading_upper {
         let mut chars = fixed.chars();
         match chars.next() {

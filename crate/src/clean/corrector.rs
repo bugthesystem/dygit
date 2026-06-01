@@ -26,13 +26,15 @@ const CONNECT_TIMEOUT: Duration = Duration::from_millis(50);
 /// error it returns the token unchanged — silence beats a wrong guess.
 pub trait Corrector {
     /// Returns a correction for `token`, or `token` itself when it has none.
+    #[must_use]
     fn correct(&self, token: &str) -> String;
 }
 
-/// The cold-start fallback: no generalisation at all. Used on the first prompt
-/// of a session (or while the daemon is still loading the dictionary). The
-/// curated table and segmentation have already run, so this just passes tokens
-/// through untouched — instant and offline.
+/// The cold-start fallback: no generalisation at all.
+///
+/// Used on the first prompt of a session (or while the daemon is still loading
+/// the dictionary). The curated table and segmentation have already run, so this
+/// just passes tokens through untouched — instant and offline.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct TableOnly;
 

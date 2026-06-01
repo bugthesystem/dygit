@@ -1,11 +1,11 @@
 //! `dygi hook` — runs on every `UserPromptSubmit`.
 //!
 //! Contract with Claude Code (verified): we read a JSON payload on stdin, and
-//! the ONLY way to influence Claude is to print JSON whose
+//! the ONLY way to influence the model is to print JSON whose
 //! `hookSpecificOutput.additionalContext` is injected as context. We can NOT
 //! rewrite the prompt or draw terminal UI, so the visible "✓ understood" line
-//! is produced by *Claude*, instructed via that context. On any error we print
-//! nothing and the caller exits 0 — a broken hook must be invisible.
+//! is produced by *the model*, instructed via that context. On any error we
+//! print nothing and the caller exits 0 — a broken hook must be invisible.
 
 use crate::clean::corrector::{Corrector, DaemonCorrector, TableOnly};
 use crate::clean::{self, Outcome};
@@ -37,6 +37,7 @@ pub struct HookInput {
 ///   blocks: we fire-and-forget and ignore any failure.
 ///
 /// Returned boxed so callers hold one type regardless of which arm fired.
+#[must_use]
 pub fn build_corrector() -> Box<dyn Corrector> {
     if let Some(daemon) = DaemonCorrector::connect() {
         return Box::new(daemon);
@@ -68,17 +69,17 @@ pub fn run(input: &HookInput, now_iso: &str, corrector: &dyn Corrector) -> Strin
     // Best-effort log; never let a logging failure affect the hook.
     let _ = log_event(input, &outcome, now_iso);
 
-    // Decide whether to ask Claude to confirm aloud.
+    // Decide whether to ask the model to confirm aloud. Verbose confirms every
+    // cleanup; quiet confirms only low-confidence (`Interpret`) ones.
     let confirm = match (config.verbosity, outcome.verdict) {
-        (Verbosity::Verbose, _) => true,
-        (Verbosity::Quiet, Verdict::Interpret) => true,
+        (Verbosity::Verbose, _) | (Verbosity::Quiet, Verdict::Interpret) => true,
         (Verbosity::Quiet, _) => false,
     };
 
     additional_context(&outcome, confirm)
 }
 
-/// Builds the `additionalContext` JSON string for Claude.
+/// Builds the `additionalContext` JSON string for the model.
 ///
 /// Contract: only ever called for `Trivial` or `Interpret`. `run` early-returns
 /// on `Clean` (nothing changed → stay silent), so the `Clean` case never reaches
