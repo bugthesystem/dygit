@@ -71,6 +71,11 @@ jobs:
         run: |
           set -euo pipefail
           ver="${VER#v}"
+          # Create the release if it does not exist yet. The four matrix jobs
+          # run in parallel and may race here; `|| true` lets the loser ignore
+          # the "already exists" error so exactly one release ends up created.
+          gh release view "$VER" >/dev/null 2>&1 \
+            || gh release create "$VER" --title "$VER" --generate-notes || true
           gh release upload "$VER" \
             "dist/dygi-${ver}-${{ matrix.name }}.tar.gz" \
             "dist/dygi-${ver}-${{ matrix.name }}.tar.gz.sha256" \
