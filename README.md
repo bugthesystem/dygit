@@ -95,6 +95,28 @@ brew tap bugthesystem/dygit https://github.com/bugthesystem/dygit
 brew install dygi
 ```
 
+### Cursor
+
+The same binary works in [Cursor](https://cursor.com) (v1.7+) — its
+`beforeSubmitPrompt` hook speaks the same protocol. Clone the repo and point a
+hook at it:
+
+```jsonc
+// .cursor/hooks.json  (project)  or  ~/.cursor/hooks.json  (global)
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      { "command": "bash /absolute/path/to/dygit/hooks/run.sh" }
+    ]
+  }
+}
+```
+
+A ready-to-copy `.cursor/hooks.json` ships in this repo (uses a project-relative
+path). The cleaned reading is injected as `additionalContext`, exactly as in
+Claude Code — same engine, no AI, no token cost for the spell-check.
+
 ## Commands
 
 | Command | Does |
