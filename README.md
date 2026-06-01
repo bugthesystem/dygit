@@ -113,6 +113,19 @@ cp opencode/dygi.js ~/.config/opencode/plugins/    # or .opencode/plugins/ per p
 OpenCode rewrites the message inline (no side-channel), so it only acts on
 high-confidence fixes. See [`opencode/README.md`](opencode/README.md).
 
+### Editor support
+
+| Editor | Status | Mechanism |
+|---|---|---|
+| Claude Code | full | `UserPromptSubmit` hook → `additionalContext` |
+| Cursor | full | `beforeSubmitPrompt` hook → `additionalContext` |
+| OpenCode | full | `chat.message` plugin → inline rewrite (high-confidence only) |
+| VS Code | not yet | the Chat API has no pre-send hook; participants only fire on explicit `@mention` |
+| Windsurf | not yet | the `pre_user_prompt` hook can block or log, but cannot modify the prompt |
+
+The binary is editor-agnostic — if VS Code or Windsurf add a pre-send hook that can
+inject context or rewrite the prompt, wiring them up is a small shim.
+
 ## Commands
 
 Claude Code only:
