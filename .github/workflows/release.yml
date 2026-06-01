@@ -22,7 +22,10 @@ jobs:
             os: macos-14
             target: aarch64-apple-darwin
           - name: darwin-x64
-            os: macos-13
+            # Cross-compiled on an arm64 runner: GitHub's Intel macos-13 runners
+            # are retired/unavailable, and the native macOS toolchain targets
+            # x86_64 fine from arm64 (same OS, different arch).
+            os: macos-14
             target: x86_64-apple-darwin
           - name: linux-x64
             os: ubuntu-latest
