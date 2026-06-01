@@ -23,8 +23,10 @@ class Dygi < Formula
       url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-darwin-arm64.tar.gz"
       sha256 "56cb0d31f67625be5f7288456a9b9b757f8280e7e7d3943a1f01df2c996d3a37"
     end
-    # on_intel (darwin-x64): pending — the macOS Intel CI runner is still
-    # building. Filled in by the next release build.
+    on_intel do
+      url "https://github.com/bugthesystem/dygit/releases/download/v0.1.0/dygi-0.1.0-darwin-x64.tar.gz"
+      sha256 "8f2c96ef6175cb8b7936930015d192fa7448a8c5898c71a5a10239e8abd36562"
+    end
   end
 
   on_linux do
