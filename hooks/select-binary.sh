@@ -7,7 +7,11 @@
 # "stay invisible, do nothing".
 set -euo pipefail
 
-root="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT not set}"
+# Resolve the plugin root from our own location (hooks/ -> plugin root) so this
+# works both as a hook (where CLAUDE_PLUGIN_ROOT is set) and as a slash command
+# (where it is not). The env var, if present, takes precedence.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+root="${CLAUDE_PLUGIN_ROOT:-$(dirname "$here")}"
 
 case "$(uname -s)/$(uname -m)" in
   Darwin/arm64)  bin="dygi-darwin-arm64" ;;

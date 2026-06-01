@@ -1,8 +1,12 @@
 ---
 description: Show your last original prompt verbatim so you can re-send it
+allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/hooks/dygi.sh:*)"]
 ---
 
-Run the command below. Present the original prompt to the user and offer to
-re-run it with their correction if they want.
+Your last original prompt:
 
-!`bash "${CLAUDE_PLUGIN_ROOT}/hooks/dygi.sh" undo`
+```!
+"${CLAUDE_PLUGIN_ROOT}/hooks/dygi.sh" undo
+```
+
+Present it to the user and offer to re-run it with their correction.
